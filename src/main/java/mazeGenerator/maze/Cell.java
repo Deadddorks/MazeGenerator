@@ -46,10 +46,6 @@ public class Cell
 		isEnd = false;
 
 		isOpenInDir = new boolean[4];
-		for (int dir = 0; dir < 4; dir++)
-		{
-			isOpenInDir[dir] = false;
-		}
 	}
 
 	public boolean getOpenStatusInDir(final Direction dir)

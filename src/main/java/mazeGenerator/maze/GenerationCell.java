@@ -1,206 +1,102 @@
 package mazeGenerator.maze;
-//--------------------------------------------------
-//----- Imports ------------------------------------
-//--------------------------------------------------
-import java.util.ArrayList;
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//~~~~~
+
+// ~~~~~~~~~~ Imports ~~~~~~~~~~
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 public class GenerationCell
 {
 	
-	//--------------------------------------------------
-	//----- _ ------------------------------------------
-	//--------------------------------------------------
+	// ----- Label -----
+	// ~~~~~~~~~~ Constants ~~~~~~~~~~
 	
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	//~~~~~
-	
-	//--------------------------------------------------
-	//----- Constants ----------------------------------
-	//--------------------------------------------------
-	
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	//~~~~~
-	//--------------------------------------------------
-	//----- Variables ----------------------------------
-	//--------------------------------------------------
-	/**
-	 * <strong>Cell</strong> that actually represents this location.
-	 */
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// ~~~~~~~~~~ Variables ~~~~~~~~~~
 	private Cell cell;
+	private GenerationCell[] adjGenCells;
+	private boolean[] linkedInDir;
+	private GenerationList group;
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	
-	/**
-	 * <strong>X</strong> index of the <strong>Cell</strong> in the Array.
-	 */
-	private final int cellX;
-	/**
-	 * <strong>Y</strong> index of the <strong>Cell</strong> in the Array.
-	 */
-	private final int cellY;
-	
-	/**
-	 * <strong>ArrayList</strong> that holds the group of <strong>Cell</strong>s that this <strong>Cell</strong> is contained within.
-	 */
-	private ArrayList<GenerationCell> listThatHoldsMe;
-	/**
-	 * Array of adjacent <strong>Cell</strong>s.
-	 */
-	private GenerationCell[] adjCells = null;
-	/**
-	 * <strong>Direction</strong>s that are not out of bounds and are not another <strong>Cell</strong> in the same Array
-	 */
-	private boolean[] isValidGenerationDirection;
-	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	//~~~~~
-	
-	/**
-	 * Creates a <strong>GenerationCell</strong> with the specified <strong>Cell</strong> at <strong>(cellX, cellY)</strong>.
-	 * @param cellX <strong>X</strong> index of the <strong>Cell</strong>.
-	 * @param cellY <strong>Y</strong> index of the <strong>Cell</strong>.
-	 * @param cell
-	 */
-	public GenerationCell(final int cellX, final int cellY, final Cell cell)
+	public GenerationCell(final Cell cell)
 	{
 		this.cell = cell;
-		this.cellX = cellX;
-		this.cellY = cellY;
-
-		isValidGenerationDirection = new boolean[4];
+	}
+	
+	public void setAdjGenCells(final GenerationCell[] adjGenCells)
+	{
+		this.adjGenCells = adjGenCells;
+		linkedInDir = new boolean[4];
+		for (int i = 0 ; i < 4; i++)
+		{
+			linkedInDir[i] = (adjGenCells[i] == null);
+		}
+		
+	}
+	
+	public GenerationCell getAdjCellInDir(final Direction dir)
+	{
+		return adjGenCells[dir.getDirectionIndex()];
+	}
+	
+	public Direction[] notConnectedDirs()
+	{
+		int c = numAvailableConnections();
+		Direction[] availableDirs = new Direction[c];
+		c = 0;
 		for (Direction dir : Direction.values())
 		{
-			isValidGenerationDirection[dir.getDirectionIndex()] = !cell.getOpenStatusInDir(dir);
+			if (!linkedInDir[dir.getDirectionIndex()])
+			{
+				availableDirs[c] = dir;
+				c++;
+			}
 		}
-
-		adjCells = new GenerationCell[4];
+		return availableDirs;
 	}
-
-	public void setListThatHoldsMe(final ArrayList<GenerationCell> list)
+	
+	public void setLinkedInDir(final Direction dir)
 	{
-		listThatHoldsMe = list;
+		linkedInDir[dir.getDirectionIndex()] = true;
 	}
-	public ArrayList<GenerationCell> getListThatHoldsMe()
+	
+	public int numAvailableConnections()
 	{
-		return listThatHoldsMe;
-	}
-
-	public boolean isValidDir(final Direction dir)
-	{
-		return isValidGenerationDirection[dir.getDirectionIndex()];
-	}
-
-	public void setAdjCell(final Direction dir, final GenerationCell cell)
-	{
-		adjCells[dir.getDirectionIndex()] = cell;
-	}
-	public GenerationCell getAdjCell(final Direction dir)
-	{
-		return adjCells[dir.getDirectionIndex()];
-	}
-
-	public void calculateValidDirs()
-	{
-		for (Direction dir : Direction.values())
+		int c = 0;
+		for (boolean b : linkedInDir)
 		{
-			if (cell.getOpenStatusInDir(dir))
-			{
-				isValidGenerationDirection[dir.getDirectionIndex()] = false;
-			}
-			else
-			{
-				if (adjCells[dir.getDirectionIndex()] != null)
-				{
-					isValidGenerationDirection[dir.getDirectionIndex()] = (listThatHoldsMe != adjCells[dir.getDirectionIndex()].listThatHoldsMe);
-				}
-				else
-				{
-					isValidGenerationDirection[dir.getDirectionIndex()] = false;
-				}
-			}
+			c += b ? 0 : 1;
 		}
+		return c;
 	}
-
-	public Direction[] getValidDirs ()
+	public boolean hasAnyAvailableConnections()
 	{
-		Direction[] validDirs = new Direction[getNumValidMoves()];
-		int counter = 0;
-
-		for (Direction dir : Direction.values())
-		{
-			if (isValidGenerationDirection[dir.getDirectionIndex()])
-			{
-				validDirs[counter] = dir;
-				counter++;
-			}
-		}
-
-		return validDirs;
+		return numAvailableConnections() > 0;
 	}
-
-	public int getNumValidMoves()
+	
+	public void setGroup(final GenerationList group)
 	{
-		int counter = 0;
-		for (Direction dir : Direction.values())
-		{
-			if (isValidGenerationDirection[dir.getDirectionIndex()])
-			{
-				counter++;
-			}
-		}
-		return counter;
+		this.group = group;
 	}
-	public boolean hasValidMoves()
+	public GenerationList getGroup()
 	{
-		return getNumValidMoves() > 0;
+		return group;
 	}
-
-	public int getX()
+	
+	public void connect(final Direction dir)
 	{
-		return cellX;
+		cell.setOpenStatusInDir(dir, true);
+		
+		GenerationCell adj = adjGenCells[dir.getDirectionIndex()];
+		adj.cell.setOpenStatusInDir(Direction.getDirectionByIndex(dir.getOppDirectionIndex()), true);
+		
+		setLinkedInDir(dir);
+		adj.setLinkedInDir(Direction.getDirectionByIndex(dir.getOppDirectionIndex()));
 	}
-
-	public int getY()
-	{
-		return cellY;
-	}
-
-	public Cell getCell()
-	{
-		return cell;
-	}
-
+	
 	@Override
 	public String toString()
 	{
-		String out = "{GenerationCell} : {isValidGenerationDirection: [";
-		for (int index = 0; index < Direction.values().length; index++)
-		{
-			Direction dir = Direction.values()[index];
-			out += dir + ": " + isValidGenerationDirection[dir.getDirectionIndex()];
-
-			if (index + 1 < Direction.values().length)
-			{
-				out += ", ";
-			}
-		}
-		out += "], adjCells(== null): [";
-		for (int index = 0; index < Direction.values().length; index++)
-		{
-			Direction dir = Direction.values()[index];
-			out += dir + ": " + (adjCells[index] == null ? "null" : "~");
-
-			if (index + 1 < Direction.values().length)
-			{
-				out += ", ";
-			}
-		}
-		out += "], ";
-		out += "X: "+cellX + ", ";
-		out += "Y: "+cellY + "} ";
-
-		out += cell.toString();
-
-		return out;
+		return "{Generation Cell} " + numAvailableConnections() + "\n" + cell.toString();
 	}
-	
 }

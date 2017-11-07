@@ -170,28 +170,8 @@ public class Maze
 	private void generateMethod()
 	{
 		
-		GenerationList genlist = new GenerationList(cells);
-		
-		int numCells;
-		int numUpdatesCount;
-		int numProgressUpdates = 100;
-		
-		numCells = genlist.size();
-		numUpdatesCount = 0;
-		while (genlist.size() > 1)
-		{
-			System.out.println("Attempting merge!");
-			genlist.attemptMerge();
-			System.out.println(genlist.size());
-			
-			// Print progress
-			/*while (1.0 * genlist.size() / numCells >= numUpdatesCount / numProgressUpdates)
-			{
-				System.out.println("Maze Generation: " + (100 * numUpdatesCount / numProgressUpdates) + "%");
-				numUpdatesCount++;
-			}*/
-		}
-		
+		Generator generator = new Generator(cells);
+		generator.generate();
 		checkMaze();
 	}
 	

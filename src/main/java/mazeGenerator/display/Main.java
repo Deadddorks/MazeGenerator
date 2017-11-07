@@ -36,11 +36,11 @@ public class Main extends Application
 	/**
 	 * Width of the <strong>Canvas</strong>.
 	 */
-	private final int WIDTH = 800;
+	private final int WIDTH = 900;
 	/**
 	 * Height of the <strong>Canvas</strong>.
 	 */
-	private final int HEIGHT = 800;
+	private final int HEIGHT = 900;
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	//~~~~~
 	//--------------------------------------------------

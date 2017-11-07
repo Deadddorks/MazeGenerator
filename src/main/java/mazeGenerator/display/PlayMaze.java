@@ -2,6 +2,7 @@ package mazeGenerator.display;
 //--------------------------------------------------
 //----- Imports ------------------------------------
 //--------------------------------------------------
+import javafx.application.Platform;
 import mazeGenerator.exceptions.InvalidMazeSizeException;
 import importable.util.time.Timer;
 import javafx.scene.canvas.GraphicsContext;
@@ -177,22 +178,17 @@ public class PlayMaze
 		System.out.println(" --- Maze Generation Started --- ");
 		timer.start();
 
-		Thread thread = new Thread(new Runnable()
-		{
-			@Override
-			public void run()
+		Thread thread = new Thread(() -> {
+			try
 			{
-				try
-				{
-					maze = new Maze(mazeWidth, mazeHeight);
-					restart();
-
-					System.out.println("Generation finished. Time elapsed: " + timer.msElapsed() + "ms");
-				}
-				catch (InvalidMazeSizeException e)
-				{
-					System.out.println("Could not generate maze. Invalid Size.");
-				}
+				maze = new Maze(mazeWidth, mazeHeight);
+				Platform.runLater(() -> restart());
+				
+				System.out.println("Generation finished. Time elapsed: " + timer.msElapsed() + "ms");
+			}
+			catch (InvalidMazeSizeException e)
+			{
+				System.out.println("Could not generate maze. Invalid Size.");
 			}
 		});
 
